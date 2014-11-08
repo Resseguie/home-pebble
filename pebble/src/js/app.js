@@ -2,6 +2,7 @@ var UI = require('ui');
 var ajax = require('ajax');
 
 var activeThing;
+var activeTimeout;
 var thingList;
 
 var main = new UI.Card({
@@ -9,9 +10,9 @@ var main = new UI.Card({
   subtitle: 'Control your home from your wrist!'
 });
 
-var actionCard = new UI.Card();
-actionCard.on('click', function(e) {
-  actionCard.body('Status: ...');
+var activeCard = new UI.Card();
+activeCard.on('click', function(e) {
+  activeCard.body('Status: ...');
   takeAction(activeThing);
 });
 
@@ -49,16 +50,24 @@ ajax(
 );
 
 function takeAction(activeThing) {
+  clearTimeout(activeTimeout);
+
   ajax(
     {url: 'http://10.0.0.16:3000/action/'+activeThing.index, type: 'json', cache: false },
     function(data){
-      actionCard.title(activeThing.title);
-      actionCard.subtitle(activeThing.subtitle);
-      actionCard.body('Status: ' + data.status);
-      actionCard.show();
+      activeCard.title(activeThing.title);
+      activeCard.subtitle(activeThing.subtitle);
+      activeCard.body('Status: ' + data.status);
+      activeCard.show();
+
+      // close active thing window
+      activeTimeout = setTimeout(function() {
+        activeCard.hide();
+      }, 3000);
+
     }, function(error) {
       console.log('error: ', error);
-      actionCard.body('Communication Error');
+      activeCard.body('Communication Error');
     }
   );  
 }
