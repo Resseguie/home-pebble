@@ -2,8 +2,10 @@ var UI = require('ui');
 var ajax = require('ajax');
 
 var activeThing;
-var activeTimeout;
 var thingList;
+
+var activeTimeout;
+var mainTimeout;
 
 var main = new UI.Card({
   title: 'Home Pebble',
@@ -15,7 +17,6 @@ activeCard.on('click', function(e) {
   activeCard.body('Status: ...');
   takeAction(activeThing);
 });
-
 
 main.show();
 
@@ -51,6 +52,7 @@ ajax(
 
 function takeAction(activeThing) {
   clearTimeout(activeTimeout);
+  clearTimeout(mainTimeout);
 
   ajax(
     {url: 'http://10.0.0.16:3000/action/'+activeThing.index, type: 'json', cache: false },
@@ -63,7 +65,13 @@ function takeAction(activeThing) {
       // close active thing window
       activeTimeout = setTimeout(function() {
         activeCard.hide();
-      }, 3000);
+      }, 5000);
+
+      // close whole app if no action
+      mainTimeout = setTimeout(function() {
+        thingList.hide();
+        main.hide();
+      }, 15000);
 
     }, function(error) {
       console.log('error: ', error);
