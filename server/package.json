@@ -1,0 +1,9 @@
+{
+  "name": "home-pebble",
+  "version": "0.0.1",
+  "description": "Home automation from a Pebble watch",
+  "dependencies": {
+    "express": "^4.9.8",
+    "johnny-five": "^0.8.14"
+  }
+}
