@@ -1,81 +1,47 @@
 var UI = require('ui');
 var ajax = require('ajax');
 
-var activeThing;
 var thingList;
+var things;
 
-var activeTimeout;
-var mainTimeout;
-
-var main = new UI.Card({
-  title: 'Home Pebble',
-  subtitle: 'Control your home from your wrist!'
-});
-
-var activeCard = new UI.Card();
-activeCard.on('click', function(e) {
-  activeCard.body('Status: ...');
-  takeAction(activeThing);
-});
-
-main.show();
-
-// Retrieve things to control
+// Retrieve things to control and start UI
 ajax(
-  {url: 'http://10.0.0.16:3000/things', type: 'json', cache: false},
+  {url: 'http://10.0.0.16:3000/things', type: 'json'},
   function(data){
+    things = data.things.map(function(thing) {
+      return {
+        title: thing.name,
+        subtitle: 'Status: ' + thing.status
+      };
+    });
+
     thingList = new UI.Menu({
       sections: [{
-        items: data.things.map(function(thing) {
-          return {title: thing.name, subtitle: thing.action};
-        })
+        items: things
       }]
     });
-    thingList.on('select', function(e) {
-      activeThing = {
-        index: e.itemIndex,
-        title: e.item.title,
-        subtitle: e.item.subtitle
-      };
-      takeAction(activeThing);
-    });
 
-    // Now that thingList is ready, add main click handler
-    main.on('click', function(e) {
-      thingList.show();
-    });
+    thingList.on('select', takeAction);
+    thingList.show();
 
   }, function(error) {
-    console.log('error: ', error);
+    var errorCard = new UI.Card({
+      title: 'Error',
+      subtitle: 'There was an error communicating with Home Pebble'
+    });
+    errorCard.show();
   }
 );
 
-function takeAction(activeThing) {
-  clearTimeout(activeTimeout);
-  clearTimeout(mainTimeout);
-
+function takeAction(e) {
   ajax(
-    {url: 'http://10.0.0.16:3000/action/'+activeThing.index, type: 'json', cache: false },
+    {url: 'http://10.0.0.16:3000/action/'+e.itemIndex, type: 'json', cache: false },
     function(data){
-      activeCard.title(activeThing.title);
-      activeCard.subtitle(activeThing.subtitle);
-      activeCard.body('Status: ' + data.status);
-      activeCard.show();
-
-      // close active thing window
-      activeTimeout = setTimeout(function() {
-        activeCard.hide();
-      }, 5000);
-
-      // close whole app if no action
-      mainTimeout = setTimeout(function() {
-        thingList.hide();
-        main.hide();
-      }, 15000);
-
+      things[e.itemIndex].subtitle = 'Status: ' + data.status;
+      thingList.items(0, things);
     }, function(error) {
-      console.log('error: ', error);
-      activeCard.body('Communication Error');
+      things[e.itemIndex].subtitle = 'Status: Error communicating';
+      thingList.items(0, things);
     }
   );  
 }
