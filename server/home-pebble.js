@@ -12,12 +12,18 @@ var things = require("./things.js"),
 // Wait for connection to our Arduino
 board.on("ready", function() {
 
-  // Our Home Pebble API
+  // Create Johnny-Five objects for each thing
+  things.forEach(function(d) {
+    d.five = new five.Pin(d.pin);
+  });
+
+
+  //-- Our Home Pebble API --
 
   // Return an array of things we can control
   app.get("/things", getThings);
 
-  // Take action on a given thing ID
+  // Toggle a given thing ID
   app.get("/action/:id", activateThing);
 
   // Create Express server
@@ -26,20 +32,18 @@ board.on("ready", function() {
     console.log("Home Pebble listening on port %s", port);
   });
 
-  // Create Johnny-Five objects for each thing
-  things.forEach(function(d) {
-    d.five = new five.Pin(d.pin);
-  });
 
 }); 
 
 // Returns JSON list of things we can control
 function getThings(req, res) {
-  console.log('getThings');
-
   // Drop out the Johnny-Five specific key/values
   var simpleThings = things.map(function(thing) {
-    return {name: thing.name, action: thing.action};
+    return {
+      name: thing.name,
+      action: thing.action,
+      status: thing.five.value ? 'On' : 'Off'
+    };
   });
 
   res.json({things: simpleThings})
@@ -52,12 +56,13 @@ function getThings(req, res) {
 function activateThing(req, res) {
   var thing = things[req.params.id];
 
-  console.log('activateThing: ', thing.name);
-
   // Toggle the pin high/low
   thing.five[thing.five.value ? 'low' : 'high']();
 
+  var status = thing.five.value ? 'On' : 'Off';
+  console.log(thing.name + ' : ' + status);
+
   // Send a response showing the new value
-  res.send({status: thing.five.value ? 'On' : 'Off'})
+  res.send({status: status})
     .status(200).end();
 }
