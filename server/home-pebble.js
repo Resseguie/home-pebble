@@ -24,7 +24,7 @@ board.on("ready", function() {
   app.get("/things", getThings);
 
   // Toggle a given thing ID
-  app.get("/action/:id", activateThing);
+  app.get("/activate/:id", activateThing);
 
   // Create Express server
   server = app.listen(3000, function () {

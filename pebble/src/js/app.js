@@ -21,7 +21,7 @@ ajax(
       }]
     });
 
-    thingList.on('select', takeAction);
+    thingList.on('select', activateThing);
     thingList.show();
 
   }, function(error) {
@@ -33,9 +33,9 @@ ajax(
   }
 );
 
-function takeAction(e) {
+function activateThing(e) {
   ajax(
-    {url: 'http://10.0.0.16:3000/action/'+e.itemIndex, type: 'json', cache: false },
+    {url: 'http://10.0.0.16:3000/activate/'+e.itemIndex, type: 'json', cache: false },
     function(data){
       things[e.itemIndex].subtitle = 'Status: ' + data.status;
       thingList.items(0, things);
