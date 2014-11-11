@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-var things = require("./things.js"),
-    five = require("johnny-five"),
+var five = require("johnny-five"),
     board = new five.Board(),
+    things = require("./things.js"),
 
     express = require("express"),
     app = express(),
@@ -13,8 +13,8 @@ var things = require("./things.js"),
 board.on("ready", function() {
 
   // Create Johnny-Five objects for each thing
-  things.forEach(function(d) {
-    d.five = new five.Pin(d.pin);
+  things.forEach(function(thing) {
+    thing.five = new five.Pin(thing.pin);
   });
 
 
